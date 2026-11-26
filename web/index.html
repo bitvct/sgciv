@@ -63,5 +63,13 @@
 
 <script src="i18n.js"></script>
 <script src="app.js"></script>
+<script>
+  // ?trailer plays the 30-second trailer in the page (?trailer&record lets video/record.mjs drive it frame by frame)
+  if (new URLSearchParams(location.search).has("trailer")) {
+    document.body.classList.add("trailer");
+    const l = document.createElement("link"); l.rel = "stylesheet"; l.href = "trailer.css"; document.head.appendChild(l);
+    const s = document.createElement("script"); s.src = "trailer.js"; document.body.appendChild(s);
+  }
+</script>
 </body>
 </html>

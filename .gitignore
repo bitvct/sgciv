@@ -4,3 +4,8 @@ __pycache__/
 *.pyc
 .DS_Store
 .claude/settings.local.json
+# trailer build artefacts
+video/frames/
+video/node_modules/
+video/music.wav
+video/*.mp4

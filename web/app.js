@@ -443,6 +443,7 @@ function render() {
   if (S.showLabels) drawLabels(rpx);
   if (S.showRes) drawSites(rpx, vis);
   drawWonders(rpx);
+  if (window.afterRender) window.afterRender(ctx, rpx);  // trailer overlays (trains, glows)
   placeBanners(rpx);
   drawMinimapView();
 }
@@ -633,6 +634,7 @@ function drawSites(rpx, vis) {
   }
 }
 function drawWonders(rpx) {
+  if (S.noWonders) return;
   const r = Math.max(8, Math.min(16, rpx * 0.5));
   for (const w of S.D.wonders) {
     if (w.h == null) continue;

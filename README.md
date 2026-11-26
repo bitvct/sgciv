@@ -34,3 +34,17 @@ natural-earth-vector GitHub repo.
 - 14 lenses, City View (Citizens / Districts / Economy / Housing), Almanac with every source.
 
 Caveat: the household survey counts residents (citizens + PRs) only, so jobs held by foreign workers are not counted.
+
+## Trailer
+
+A 30-second trailer modelled on the one in Karpathy's post, rendered from the live map:
+
+- Watch it play in the browser: `index.html?trailer` (click to replay).
+- Render the MP4 (1920×1080, 30 fps, original synthesised music):
+
+```bash
+cd video && npm install && node record.mjs     # → video/sgciv-trailer.mp4
+```
+
+`web/trailer.js` holds the shot list (title → terrain → cities → lenses → transit → city view → wonders → end card);
+`video/music.py` synthesises the score.
