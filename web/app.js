@@ -376,6 +376,7 @@ function resize() {
 
 function render() {
   raf = 0;
+  clampCam();
   const { W: Wd, H: Hd, cam } = S;
   ctx.setTransform(S.dpr, 0, 0, S.dpr, 0, 0);
   ctx.fillStyle = "#1c4a74"; ctx.fillRect(0, 0, Wd, Hd);
@@ -557,8 +558,14 @@ function drawRail(rpx) {
 const SEA_LABELS = [
   { en: "Straits of Johor", zh: "柔佛海峡", ll: [103.735, 1.457], size: 1 },
   { en: "Singapore Strait", zh: "新加坡海峡", ll: [103.88, 1.205], size: 1.4 },
-  { en: "MALAYSIA · JOHOR", zh: "马来西亚 · 柔佛", ll: [103.80, 1.535], size: 1.1, land: 1 },
-  { en: "INDONESIA · BATAM", zh: "印度尼西亚 · 巴淡", ll: [104.02, 1.105], size: 1.1, land: 1 },
+  { en: "MALAYSIA", zh: "马来西亚", ll: [103.62, 1.70], size: 1.5, land: 1 },
+  { en: "INDONESIA", zh: "印度尼西亚", ll: [103.92, 0.90], size: 1.5, land: 1 },
+  { en: "Johor Bahru", zh: "新山", ll: [103.75, 1.505], size: 0.8, land: 1 },
+  { en: "Pengerang", zh: "边佳兰", ll: [104.12, 1.38], size: 0.8, land: 1 },
+  { en: "Batam", zh: "巴淡岛", ll: [104.03, 1.10], size: 0.9, land: 1 },
+  { en: "Bintan", zh: "民丹岛", ll: [104.38, 1.06], size: 0.9, land: 1 },
+  { en: "Karimun", zh: "卡里摩岛", ll: [103.40, 1.03], size: 0.9, land: 1 },
+  { en: "South China Sea", zh: "南中国海", ll: [104.33, 1.52], size: 1.2 },
 ];
 let regionLabelPos = null;
 function drawLabels(rpx) {
@@ -724,7 +731,7 @@ cv.addEventListener("pointermove", (e) => {
   if (drag) {
     const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
     if (Math.abs(dx) + Math.abs(dy) > 3) { drag.moved = true; cv.classList.add("dragging"); }
-    S.cam.x = drag.cx - dx / S.cam.z; S.cam.y = drag.cy - dy / S.cam.z; hideTip(); redraw(); return;
+    S.cam.x = drag.cx - dx / S.cam.z; S.cam.y = drag.cy - dy / S.cam.z; clampCam(); hideTip(); redraw(); return;
   }
   const [wx, wy] = s2w(e.clientX, e.clientY); const h = hexAt(wx, wy);
   if (h !== S.hover) { S.hover = h; redraw(); }
@@ -1193,6 +1200,22 @@ function setLang(l) {
 
 // ------------------------------------------------------------------ boot
 let LAND_BB = null;
+// The camera never shows past the edge of the hex grid: zoom-out is limited so the window
+// fits inside the grid, and panning is clamped to it.
+function gridBB() { return [M.x0 + SQ3 * R, M.y0 + R, M.x0 + SQ3 * R * (M.cols - 1.5), M.y0 + 1.5 * R * (M.rows - 1) - R]; }
+function updateZoomLimits() {
+  const [gx0, gy0, gx1, gy1] = gridBB();
+  S.minZ = Math.max(S.W / (gx1 - gx0), S.H / (gy1 - gy0)) * 1.001;
+  S.maxZ = 70 / R;
+}
+function clampCam() {
+  if (!M || !S.minZ) return;
+  const c = S.cam, [gx0, gy0, gx1, gy1] = gridBB();
+  c.z = Math.max(S.minZ, Math.min(S.maxZ, c.z));
+  const hw = S.W / 2 / c.z, hh = S.H / 2 / c.z;
+  c.x = Math.max(gx0 + hw, Math.min(gx1 - hw, c.x));
+  c.y = Math.max(gy0 + hh, Math.min(gy1 - hh, c.y));
+}
 function fitView() {
   if (!LAND_BB) {
     let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
@@ -1202,8 +1225,8 @@ function fitView() {
   const [x0, y0, x1, y1] = LAND_BB;
   // fill the window: land bbox between the top bar (44px) and the lens bar (~56px), tiny side margins
   const top = 44, bottom = 52, w = Math.max(320, S.W - 8), h = Math.max(240, S.H - top - bottom);
-  const fitZ = Math.min(w / (x1 - x0 + R * 2), h / (y1 - y0 + R * 2));
-  S.minZ = fitZ * 0.55; S.maxZ = 70 / R;
+  updateZoomLimits();
+  const fitZ = Math.max(S.minZ, Math.min(w / (x1 - x0 + R * 2), h / (y1 - y0 + R * 2)));
   S.cam = { x: (x0 + x1) / 2, y: (y0 + y1) / 2 - (top - bottom) / 2 / fitZ, z: fitZ };
   S.userMoved = false;
 }
@@ -1222,7 +1245,7 @@ async function boot() {
   saveHash.ready = true;
   redraw();
 }
-window.addEventListener("resize", () => { resize(); if (S.D && !S.userMoved && !S.sel) fitView(); });
+window.addEventListener("resize", () => { resize(); if (!S.D) return; updateZoomLimits(); if (!S.userMoved && !S.sel) fitView(); });
 document.querySelectorAll("#lensbar [data-lens]").forEach((b) => (b.onclick = () => setLens(b.dataset.lens)));
 document.querySelectorAll("#lensbar [data-quick]").forEach((b) => (b.onclick = () => toggleQuick(b.dataset.quick)));
 $("#lensMore").onclick = (e) => { e.stopPropagation(); $("#lensMenu").classList.toggle("hidden"); };

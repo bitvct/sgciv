@@ -25,7 +25,7 @@ natural-earth-vector GitHub repo.
 
 ## What maps to what
 
-- **Grid**: 112×83 pointy-top hexes, 600 m corner to corner; 19 sample points per hex.
+- **Grid**: 258×259 pointy-top hexes (Singapore plus southern Johor and the Riau Islands), 600 m corner to corner; 19 sample points per hex.
 - **Towns** = URA's 55 planning areas. **Gold** = 2025 GDP by industry, shared out by where residents work.
   **Food / Production / Science / Culture** = resident workers in F&B, manufacturing+construction,
   info-comm+professional, and arts, by workplace.

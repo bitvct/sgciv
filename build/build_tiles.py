@@ -17,7 +17,7 @@ OUT = os.path.join(HERE, "..", "web", "data", "sgciv.json")
 LON0, LAT0 = 103.82, 1.35
 KX = 111320.0 * math.cos(math.radians(LAT0))
 KY = 110574.0
-BBOX = (103.50, 1.06, 104.18, 1.58)  # lon0, lat0, lon1, lat1 (Singapore plus Johor / Batam context)
+BBOX = (103.25, 0.80, 104.45, 1.85)  # lon0, lat0, lon1, lat1 (Singapore plus southern Johor / Riau Islands context)
 R = 300.0
 SQ3 = math.sqrt(3)
 
@@ -127,6 +127,42 @@ class PolyIndex:
                     return value
                 out.append(value)
         return None if first else out
+
+
+class ScanMask:
+    """Point-in-polygon for a few huge polygons (country outlines): even-odd crossings
+    per horizontal scanline, cached by y. Far faster than ring walks on 10k-vertex rings."""
+
+    def __init__(self):
+        self.edges = collections.defaultdict(list)  # value -> [(x0,y0,x1,y1)]
+        self.cache = {}
+
+    def add_geometry(self, geom, value):
+        polys = geom["coordinates"] if geom["type"] == "MultiPolygon" else [geom["coordinates"]]
+        ymin, ymax = Y0 - 5000, Y1 + 5000
+        for poly in polys:
+            for ring in poly:
+                pts = [proj(p[0], p[1]) for p in ring]
+                for (ax, ay), (bx, by) in zip(pts, pts[1:]):
+                    if max(ay, by) < ymin or min(ay, by) > ymax or ay == by:
+                        continue
+                    self.edges[value].append((ax, ay, bx, by))
+
+    def _xs(self, value, y):
+        key = (value, round(y, 1))
+        xs = self.cache.get(key)
+        if xs is None:
+            xs = sorted(ax + (y - ay) * (bx - ax) / (by - ay) for ax, ay, bx, by in self.edges[value]
+                        if (ay > y) != (by > y))
+            self.cache[key] = xs
+        return xs
+
+    def query(self, x, y):
+        import bisect
+        for value in self.edges:
+            if bisect.bisect_left(self._xs(value, y), x) % 2 == 1:
+                return value
+        return None
 
 
 def load_geo(name):
@@ -320,7 +356,7 @@ def main():
     for f in load_geo("geo_jtc_estates.geojson"):
         jtc_index.add_geometry(f["geometry"], f["properties"]["ESTATE_NAME"])
 
-    foreign_index = PolyIndex()
+    foreign_index = ScanMask()
     for f in load_geo("ne_10m_admin_0_countries.geojson"):
         a3 = f["properties"]["ADM0_A3"]
         if a3 in ("MYS", "IDN"):
