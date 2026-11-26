@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>sgciv — Singapore as a strategy game</title>
+<meta name="description" content="Singapore drawn as a Civilization-style hex map, built entirely from public data. English / 中文.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Inter:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<canvas id="map"></canvas>
+<div id="banners"></div>
+
+<header id="topbar">
+  <button id="flag" class="flagbtn" title="Singapore">★</button>
+  <div id="countryName" class="country">SINGAPORE</div>
+  <div id="stats" class="stats"></div>
+  <div class="spacer"></div>
+  <div class="search">
+    <input id="search" type="text" autocomplete="off" spellcheck="false">
+    <kbd>/</kbd>
+    <div id="searchResults" class="results"></div>
+  </div>
+  <button id="langBtn" class="btn lang" title="Language / 语言">中文</button>
+  <button id="shareBtn" class="btn"><span class="ico">⤴</span><span data-t="share"></span></button>
+  <button id="helpBtn" class="btn sq" title="?">?</button>
+  <button id="almanacBtn" class="btn"><span class="ico">📖</span><span data-t="almanac"></span></button>
+</header>
+
+<div id="legend" class="legend"></div>
+
+<canvas id="minimap" width="220" height="150"></canvas>
+
+<nav id="lensbar">
+  <button data-quick="resources" class="qb on"><span class="ico">💎</span><span data-t="resources"></span></button>
+  <button data-quick="labels" class="qb on"><span class="ico">🗺</span><span data-t="map"></span></button>
+  <button data-lens="terrain" class="qb"><span class="ico">⛰</span><span data-t="l_terrain"></span></button>
+  <button data-lens="population" class="qb"><span class="ico">👥</span><span data-t="l_population"></span></button>
+  <button data-lens="income" class="qb"><span class="ico">$</span><span data-t="l_income"></span></button>
+  <button data-lens="transit" class="qb"><span class="ico">🚇</span><span data-t="l_transit"></span></button>
+  <button id="lensMore" class="qb more"><span class="ico">◈</span><span data-t="lenses"></span> ▾</button>
+</nav>
+
+<div id="lensMenu" class="lensmenu hidden"></div>
+
+<aside id="panel" class="panel hidden"></aside>
+
+<div id="tip" class="tip hidden"></div>
+
+<div id="almanac" class="modal hidden">
+  <div class="modalbox">
+    <nav id="almanacNav"></nav>
+    <article id="almanacBody"></article>
+    <button class="close" id="almanacClose">✕</button>
+  </div>
+</div>
+
+<div id="toast" class="toast hidden"></div>
+<div id="loading" class="loading"><div class="spinner"></div><div data-t="loading"></div></div>
+
+<script src="i18n.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

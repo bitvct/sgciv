@@ -1,0 +1,6 @@
+# Raw downloads (~300 MB) — regenerate with the scripts in build/
+data/raw/
+__pycache__/
+*.pyc
+.DS_Store
+.claude/settings.local.json
